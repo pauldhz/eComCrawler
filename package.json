@@ -1,0 +1,32 @@
+{
+  "name": "ecomcrawler",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node --loader ts-node/esm src/main.ts",
+    "build": "tsc",
+    "dev": "ts-node --esm src/main.ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pauldhz/eComCrawler.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/pauldhz/eComCrawler/issues"
+  },
+  "homepage": "https://github.com/pauldhz/eComCrawler#readme",
+  "dependencies": {
+    "cheerio": "^1.2.0",
+    "crawlee": "^3.10.1"
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^6.0.2"
+  }
+}
