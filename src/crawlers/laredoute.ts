@@ -1,18 +1,33 @@
-import { PlaywrightCrawler, createPlaywrightRouter, Dataset, BrowserName, DeviceCategory, OperatingSystemsName } from "crawlee";
-import type { Page } from "playwright";
+import { PlaywrightCrawler, createPlaywrightRouter, Dataset, BrowserName, OperatingSystemsName, DeviceCategory } from "crawlee";
+import { firefox } from 'playwright';
+import { launchOptions } from 'camoufox-js';
 
 export const router = createPlaywrightRouter();
 
-router.addHandler('CATEGORY', async ({ page, request, enqueueLinks, log}) => {
+// Niveau 1 : Homepage → on cherche les liens de catégories
+router.addHandler('HOME', async ({ page, enqueueLinks, log }) => {
+    log.info('Crawling homepage...');
+    await page.waitForLoadState('networkidle');
+
+    await enqueueLinks({
+        globs: ['https://www.laredoute.fr/pplp/100/**'],
+        label: 'CATEGORY',
+    });
+});
+
+// Niveau 2 : Page catégorie → on cherche les liens produits
+router.addHandler('CATEGORY', async ({ page, enqueueLinks, log, request }) => {
     log.info(`Crawling category: ${request.url}`);
     await page.waitForLoadState('networkidle');
+
     await enqueueLinks({
-        globs: ['https://www.laredoute.fr/'],
+        globs: ['https://www.laredoute.fr/ppdp/**'],
         label: 'PRODUCT',
     });
 });
 
-router.addHandler('PRODUCT', async({page, request, log}) => {
+// Niveau 3 : Page produit → on scrape
+router.addHandler('PRODUCT', async ({ page, request, log }) => {
     log.info(`Crawling product: ${request.url}`);
     await page.waitForLoadState('networkidle');
 
@@ -23,32 +38,23 @@ router.addHandler('PRODUCT', async({page, request, log}) => {
 });
 
 export const laredouteCrawler = new PlaywrightCrawler({
-    maxConcurrency: 1,
-    headless: false,
-    requestHandler: router,
-    // Fingerprint réaliste pour éviter la détection Cloudflare
-    browserPoolOptions: {
-        useFingerprints: true,
-        fingerprintOptions: {
-            fingerprintGeneratorOptions: {
-                browsers: [
-                    {
-                        name: BrowserName.edge,
-                        minVersion: 96,
-                    },
-                ],
-                devices: [DeviceCategory.desktop],
-                operatingSystems: [OperatingSystemsName.windows],
-                locales: ['fr-FR'],
-            },
+    postNavigationHooks: [
+        async ({ handleCloudflareChallenge }) => {
+            await handleCloudflareChallenge();
         },
+    ],
+    browserPoolOptions: {
+        useFingerprints: false,
     },
-    
-    failedRequestHandler({ request, log }) {
-        log.error(`Failed: ${request.url}`);
+    launchContext: {
+        launcher: firefox,
+        launchOptions: await launchOptions({
+            headless: false,
+        }),
     },
 });
 
+// Départ : la homepage avec le label HOME
 export const laredouteStartUrl = [
-    { url: 'https://www.laredoute.fr/', label: 'CATEGORY' },
+    { url: 'https://www.laredoute.fr/', label: 'HOME' },
 ];
