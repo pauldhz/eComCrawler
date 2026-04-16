@@ -1,0 +1,104 @@
+{
+    "site": {
+        "name": "Terria",
+        "baseUrl": "https://www.terria.fr",
+        "engine": "cheerio"
+    },
+    "levels": [
+        {
+            "label": "HOME",
+            "startUrls": [
+                { "url": "https://www.terria.fr/", "label": "HOME" }
+            ],
+            "enqueueLinks": {
+                "globs": ["https://www.terria.fr/index.php?route=product/category**"],
+                "label": "CATEGORY"
+            }
+        },
+        {
+            "label": "CATEGORY",
+            "enqueueLinks": {
+                "globs": ["https://www.terria.fr/index.php?route=product/product**"],
+                "label": "PRODUCT"
+            }
+        },
+        {
+            "label": "PRODUCT",
+            "fields": [
+                {
+                    "key": "title",
+                    "selector": "h1",
+                    "type": "text",
+                    "transform": "trim"
+                },
+                {
+                    "key": "price",
+                    "selector": "h2",
+                    "type": "text",
+                    "transform": "trim",
+                    "note": "Contient le prix TTC et l'éventuel % de remise"
+                },
+                {
+                    "key": "reference",
+                    "selector": "ul.list-unstyled li",
+                    "type": "text-filter",
+                    "filter": "Référence",
+                    "replace": "Référence :",
+                    "transform": "trim"
+                },
+                {
+                    "key": "availability",
+                    "selector": "ul.list-unstyled li",
+                    "type": "text-filter",
+                    "filter": "Disponibilité",
+                    "replace": "Disponibilité :",
+                    "transform": "trim"
+                },
+                {
+                    "key": "ecoContribution",
+                    "selector": "ul.list-unstyled li",
+                    "type": "text-filter",
+                    "filter": "dont",
+                    "transform": "trim"
+                },
+                {
+                    "key": "shortDescription",
+                    "selector": "#tab-description",
+                    "type": "text",
+                    "transform": "trim"
+                },
+                {
+                    "key": "longDescription",
+                    "selector": "#tab-description1",
+                    "type": "text",
+                    "transform": "trim"
+                },
+                {
+                    "key": "productId",
+                    "selector": "input[name=\"product_id\"]",
+                    "type": "attr",
+                    "attr": "value"
+                },
+                {
+                    "key": "specifications",
+                    "selector": "#tab-specification tbody tr",
+                    "type": "key-value-table",
+                    "keyCell": "td:nth-child(1)",
+                    "valueCell": "td:nth-child(2)",
+                    "flatten": true,
+                    "note": "Chaque ligne devient une colonne dans le dataset"
+                },
+                {
+                    "key": "images",
+                    "selector": ".thumbnails li a",
+                    "type": "attr-list",
+                    "attr": "href",
+                    "flatten": true,
+                    "maxItems": 5,
+                    "keyPrefix": "image",
+                    "note": "Exporté en image1, image2, ... image5"
+                }
+            ]
+        }
+    ]
+}
