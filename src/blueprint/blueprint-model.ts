@@ -178,6 +178,14 @@ interface Blueprint {
          * Par défaut : `false`.
          */
         debug?: boolean;
+
+        /**
+         * Configuration du proxy. Les URLs sont rotées automatiquement (round-robin).
+         * Format : `"http://user:pass@host:port"` ou `"http://host:port"`.
+         */
+        proxy?: {
+            urls: string[];
+        };
     };
 
     /**

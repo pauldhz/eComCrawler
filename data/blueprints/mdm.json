@@ -2,7 +2,10 @@
     "site": {
         "name": "Maison du monde ",
         "baseUrl": "https://www.maisonsdumonde.com",
-        "engine": "playwright"
+        "engine": "cheerio",
+        "proxy": {
+            "urls": ["$PROXY"]
+        }
     },
     "levels": [
         {

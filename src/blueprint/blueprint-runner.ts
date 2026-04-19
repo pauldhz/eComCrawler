@@ -1,10 +1,23 @@
-import { CheerioCrawler, createCheerioRouter, PlaywrightCrawler, createPlaywrightRouter, Dataset, CheerioCrawlingContext, CrawlingContext } from 'crawlee';
+import { CheerioCrawler, createCheerioRouter, PlaywrightCrawler, createPlaywrightRouter, Dataset, CheerioCrawlingContext, CrawlingContext, ProxyConfiguration } from 'crawlee';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
+import { config as loadEnv } from 'dotenv';
 import { Blueprint, FieldDef, LevelDef } from './blueprint-model.js';
 import { extractAttr, extractAttrList, extractKeyValueTable, extractText, extractTextFilter, extractTextGroupList } from './blueprint-extractors.js';
 import { CheerioAdapter, PlaywrightAdapter, ExtractionAdapter } from './blueprint-adapter.js';
 import { posthook, prehook } from '../configuration/hooks.js';
+
+loadEnv();
+
+function resolveEnvVars(urls: string[]): string[] {
+    return urls.map(url => {
+        if (!url.startsWith('$')) return url;
+        const varName = url.slice(1);
+        const value = process.env[varName];
+        if (!value) throw new Error(`Variable d'environnement manquante : ${varName} (référencée dans le blueprint)`);
+        return value;
+    });
+}
 
 // ─── Extraction ───────────────────────────────────────────────────────────────
 
@@ -73,6 +86,10 @@ export const createCrawlerFromBlueprint = (blueprintPath: string): {
 
     const debug = blueprint.site.debug ?? false;
 
+    const proxyConfiguration = blueprint.site.proxy
+        ? new ProxyConfiguration({ proxyUrls: resolveEnvVars(blueprint.site.proxy.urls) })
+        : undefined;
+
     if (blueprint.site.engine === 'playwright') {
         const router = createPlaywrightRouter();
         for (const level of blueprint.levels) {
@@ -85,6 +102,7 @@ export const createCrawlerFromBlueprint = (blueprintPath: string): {
             crawler: new PlaywrightCrawler({
                 requestHandler: router,
                 headless: false,
+                proxyConfiguration,
                 ...(debug && {
                     preNavigationHooks: [async ({ request, log }) => {
                         log.debug(`→ [${request.label ?? '?'}] ${request.url}`);
@@ -106,6 +124,7 @@ export const createCrawlerFromBlueprint = (blueprintPath: string): {
     return {
         crawler: new CheerioCrawler({
             requestHandler: router,
+            proxyConfiguration,
             ...(debug && {
                 preNavigationHooks: [async ({ request, log }) => prehook({ request, log } as CheerioCrawlingContext)],
                 postNavigationHooks: [async ({ request, response, log }) => posthook({request, response, log } as CheerioCrawlingContext)],
