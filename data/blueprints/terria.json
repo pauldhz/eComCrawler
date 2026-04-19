@@ -2,7 +2,7 @@
     "site": {
         "name": "Terria",
         "baseUrl": "https://www.terria.fr",
-        "engine": "cheerio"
+        "engine": "playwright"
     },
     "levels": [
         {
@@ -76,12 +76,6 @@
                     "selector": "#tab-description1",
                     "type": "text",
                     "transform": "trim"
-                },
-                {
-                    "key": "productId",
-                    "selector": "input[name=\"product_id\"]",
-                    "type": "attr",
-                    "attr": "value"
                 },
                 {
                     "key": "specifications",

@@ -169,9 +169,9 @@ interface Blueprint {
         /**
          * Moteur de crawling à utiliser.
          * `'cheerio'` : parsing HTML statique, rapide, sans JS.
-         * (D'autres moteurs comme `'playwright'` pourront être ajoutés.)
+         * `'playwright'` : browser réel (Chromium), exécute le JS, contourne les rendus dynamiques.
          */
-        engine: 'cheerio';
+        engine: 'cheerio' | 'playwright';
     };
 
     /**
