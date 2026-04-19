@@ -172,6 +172,12 @@ interface Blueprint {
          * `'playwright'` : browser réel (Chromium), exécute le JS, contourne les rendus dynamiques.
          */
         engine: 'cheerio' | 'playwright';
+
+        /**
+         * Active le mode debug : log détaillé de chaque requête HTTP (URL, label, statut, taille).
+         * Par défaut : `false`.
+         */
+        debug?: boolean;
     };
 
     /**

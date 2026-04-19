@@ -1,9 +1,10 @@
-import { CheerioCrawler, createCheerioRouter, PlaywrightCrawler, createPlaywrightRouter, Dataset, CheerioCrawlingContext } from 'crawlee';
+import { CheerioCrawler, createCheerioRouter, PlaywrightCrawler, createPlaywrightRouter, Dataset, CheerioCrawlingContext, CrawlingContext } from 'crawlee';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
 import { Blueprint, FieldDef, LevelDef } from './blueprint-model.js';
 import { extractAttr, extractAttrList, extractKeyValueTable, extractText, extractTextFilter, extractTextGroupList } from './blueprint-extractors.js';
 import { CheerioAdapter, PlaywrightAdapter, ExtractionAdapter } from './blueprint-adapter.js';
+import { posthook, prehook } from '../configuration/hooks.js';
 
 // ─── Extraction ───────────────────────────────────────────────────────────────
 
@@ -70,6 +71,8 @@ export const createCrawlerFromBlueprint = (blueprintPath: string): {
         if (level.startUrls) startUrls = level.startUrls;
     }
 
+    const debug = blueprint.site.debug ?? false;
+
     if (blueprint.site.engine === 'playwright') {
         const router = createPlaywrightRouter();
         for (const level of blueprint.levels) {
@@ -78,7 +81,18 @@ export const createCrawlerFromBlueprint = (blueprintPath: string): {
                 await processLevel(adapter, level, ctx);
             });
         }
-        return { crawler: new PlaywrightCrawler({ requestHandler: router, headless: false }), startUrls };
+        return {
+            crawler: new PlaywrightCrawler({
+                requestHandler: router,
+                headless: false,
+                ...(debug && {
+                    preNavigationHooks: [async ({ request, log }) => {
+                        log.debug(`→ [${request.label ?? '?'}] ${request.url}`);
+                    }],
+                }),
+            }),
+            startUrls,
+        };
     }
 
     // engine === 'cheerio' (défaut)
@@ -89,5 +103,14 @@ export const createCrawlerFromBlueprint = (blueprintPath: string): {
             await processLevel(adapter, level, ctx);
         });
     }
-    return { crawler: new CheerioCrawler({ requestHandler: router }), startUrls };
+    return {
+        crawler: new CheerioCrawler({
+            requestHandler: router,
+            ...(debug && {
+                preNavigationHooks: [async ({ request, log }) => prehook({ request, log } as CheerioCrawlingContext)],
+                postNavigationHooks: [async ({ request, response, log }) => posthook({request, response, log } as CheerioCrawlingContext)],
+            }),
+        }),
+        startUrls,
+    };
 }

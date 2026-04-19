@@ -2,7 +2,8 @@
     "site": {
         "name": "Terria",
         "baseUrl": "https://www.terria.fr",
-        "engine": "playwright"
+        "engine": "cheerio",
+        "debug": true
     },
     "levels": [
         {
