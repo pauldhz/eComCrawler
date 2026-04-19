@@ -4,9 +4,10 @@
  * - `text-filter`     → filtre d'abord plusieurs éléments selon `filter`, puis extrait le texte
  * - `attr`            → récupère la valeur d'un attribut HTML (ex: `value`, `href`, `src`)
  * - `attr-list`       → collecte un attribut sur une liste d'éléments (ex: tous les `href` d'une galerie)
- * - `key-value-table` → lit un tableau HTML à deux colonnes et construit un objet clé/valeur
+ * - `key-value-table`  → lit un tableau HTML à deux colonnes et construit un objet clé/valeur
+ * - `text-group-list`   → collecte plusieurs éléments, découpe chacun par `groupBySeparator` et retourne un tableau structuré
  */
-export type FieldType = 'text' | 'text-filter' | 'attr' | 'attr-list' | 'key-value-table';
+export type FieldType = 'text' | 'text-filter' | 'attr' | 'attr-list' | 'key-value-table' | 'text-group-list';
 
 /**
  * Définition d'un champ à extraire sur une page produit.
@@ -80,6 +81,14 @@ interface FieldDef {
      * Par défaut : `"td:nth-child(2)"`.
      */
     valueCell?: string;
+
+    /**
+     * (type `text-group-list` uniquement)
+     * Séparateur utilisé pour découper le texte de chaque élément en deux parties.
+     * Ex: `" - "` sur `"Beige - Naturel"` produit `{ label: "Beige", value: "Naturel" }`.
+     * Si le séparateur est absent dans un élément, `value` vaut `null`.
+     */
+    groupBySeparator?: string;
 }
 
 /**
@@ -123,6 +132,25 @@ interface LevelDef {
      * Absent sur les niveaux intermédiaires qui se contentent d'enqueuer des liens.
      */
     fields?: FieldDef[];
+
+    /**
+     * Configuration de la pagination pour ce niveau.
+     * Si présent, le runner suit le lien "page suivante" et renvoie la page dans le même handler.
+     */
+    pagination?: {
+        /**
+         * Sélecteur CSS du lien vers la page suivante.
+         * Ex: `".pagination li.next a"`, `"a[rel='next']"`.
+         * Si l'élément est absent ou le lien vide, la pagination s'arrête.
+         */
+        nextSelector: string;
+
+        /**
+         * Attribut HTML contenant l'URL de la page suivante.
+         * Par défaut : `"href"`.
+         */
+        attr?: string;
+    };
 }
 
 /**

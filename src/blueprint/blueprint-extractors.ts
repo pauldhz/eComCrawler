@@ -47,6 +47,27 @@ export const extractAttrList = ($: $, field: FieldDef): string[] | Record<string
 }
 
 /**
+ * Collecte le texte de tous les éléments correspondants et découpe chacun par `groupBySeparator`.
+ * Retourne un tableau d'objets `{ label, value }`.
+ * Ex: ["Beige - Naturel", "Gris - Anthracite"] → [{ label: "Beige", value: "Naturel" }, ...]
+ */
+export const extractTextGroupList = ($: $, field: FieldDef): { label: string; value: string | null }[] => {
+    const separator = field.groupBySeparator ?? ' - ';
+    const result: { label: string; value: string | null }[] = [];
+    $(field.selector).each((_, node) => {
+        const raw = $(node).text().trim();
+        if (!raw) return;
+        const idx = raw.indexOf(separator);
+        if (idx === -1) {
+            result.push({ label: raw, value: null });
+        } else {
+            result.push({ label: raw.slice(0, idx).trim(), value: raw.slice(idx + separator.length).trim() });
+        }
+    });
+    return result;
+}
+
+/**
  * Lit un tableau HTML à deux colonnes et retourne un objet clé/valeur.
  * Destiné à être aplati dans le record (`flatten: true`).
  */

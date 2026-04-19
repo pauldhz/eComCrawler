@@ -2,7 +2,7 @@ import { CheerioCrawler, createCheerioRouter, Dataset, CheerioCrawlingContext } 
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
 import { Blueprint, FieldDef } from './blueprint-model.js';
-import { extractAttr, extractAttrList, extractKeyValueTable, extractText, extractTextFilter } from './blueprint-extractors.js';
+import { extractAttr, extractAttrList, extractKeyValueTable, extractText, extractTextFilter, extractTextGroupList } from './blueprint-extractors.js';
 
 type $ = CheerioCrawlingContext['$'];
 
@@ -12,8 +12,9 @@ function extractField($: $, field: FieldDef): unknown {
         case 'text':            return extractText($, field);
         case 'text-filter':     return extractTextFilter($, field);
         case 'attr':            return extractAttr($, field);
-        case 'attr-list':       return extractAttrList($, field);
-        case 'key-value-table': return extractKeyValueTable($, field);
+        case 'attr-list':        return extractAttrList($, field);
+        case 'key-value-table':  return extractKeyValueTable($, field);
+        case 'text-group-list':  return extractTextGroupList($, field);
     }
 }
 
@@ -35,7 +36,7 @@ export const createCrawlerFromBlueprint = (blueprintPath: string): {
             startUrls = level.startUrls;
         }
 
-        router.addHandler(level.label, async ({ $, enqueueLinks, request, log }) => {
+        router.addHandler(level.label, async ({ $, enqueueLinks, addRequests, request, log }) => {
             log.info(`[${level.label}] ${request.url}`);
 
             // Niveaux de navigation : on enqueue les liens suivants
@@ -44,6 +45,16 @@ export const createCrawlerFromBlueprint = (blueprintPath: string): {
                     globs: level.enqueueLinks.globs,
                     label: level.enqueueLinks.label,
                 });
+            }
+
+            // Pagination : on suit le lien "page suivante" avec le même label
+            if (level.pagination) {
+                const attr = level.pagination.attr ?? 'href';
+                const nextUrl = $(level.pagination.nextSelector).attr(attr);
+                if (nextUrl) {
+                    log.info(`[${level.label}] Next page → ${nextUrl}`);
+                    await addRequests([{ url: nextUrl, label: level.label }]);
+                }
             }
 
             // Niveau produit : on extrait les données

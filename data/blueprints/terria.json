@@ -20,6 +20,10 @@
             "enqueueLinks": {
                 "globs": ["https://www.terria.fr/index.php?route=product/product**"],
                 "label": "PRODUCT"
+            },
+            "pagination": {
+                "nextSelector": ".pagination li:nth-last-child(2) a",
+                "attr": "href"
             }
         },
         {

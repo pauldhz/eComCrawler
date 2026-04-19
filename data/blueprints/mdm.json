@@ -1,0 +1,74 @@
+{
+    "site": {
+        "name": "Maison du monde ",
+        "baseUrl": "https://www.maisonsdumonde.com",
+        "engine": "cheerio"
+    },
+    "levels": [
+        {
+            "label": "HOME",
+            "startUrls": [
+                { "url": "https://www.maisonsdumonde.com", "label": "HOME" }
+            ],
+            "enqueueLinks": {
+                "globs": ["https://www.maisonsdumonde.com/FR/fr/c/clic-clac-**"],
+                "label": "CATEGORY"
+            }
+        },
+        {
+            "label": "CATEGORY",
+            "enqueueLinks": {
+                "globs": ["https://www.maisonsdumonde.com/FR/fr/p/canape-clic-clac**"],
+                "label": "PRODUCT"
+            }
+        },
+        {
+            "label": "PRODUCT",
+            "fields": [
+                {
+                    "key": "title",
+                    "selector": "h1",
+                    "type": "text",
+                    "transform": "trim"
+                },
+                {
+                    "key": "price",
+                    "selector": "p[data-el=\"product-price-block__amount\"",
+                    "type": "text",
+                    "note": "Contient le prix TTC et l'éventuel % de remise"
+                },
+                {
+                    "key": "reference",
+                    "selector": "section[data-el=\"product-description-block\"] p[data-el=\"ds-text\"",
+                    "type": "text"
+                },
+                {
+                    "key": "shortDescription",
+                    "selector": "#tab-description",
+                    "type": "text",
+                    "transform": "trim"
+                },
+                {
+                    "key": "coloris",
+                    "selector": "div[data-el=\"ds-thumbnail-group\"] a[data-el^=\"ds-thumbnail-group__thumbnail--\"]"
+                },
+                {
+                    "key": "specifications",
+                    "selector": "#tab-specification tbody tr",
+                    "type": "key-value-table",
+                    "keyCell": "td:nth-child(1)",
+                    "valueCell": "td:nth-child(2)",
+                    "flatten": true,
+                    "note": "Chaque ligne devient une colonne dans le dataset"
+                },
+                {
+                    "key": "coloris",
+                    "selector": "div[data-el=\"ds-thumbnail-group\"] a[data-el^=\"ds-thumbnail-group__thumbnail--\"]",
+                    "type": "text-group-list",
+                    "groupBySeparator": " - ",
+                    "note": "Ex: 'Clio - Beige' → { label: 'Clio', value: 'Beige' }"
+                }
+            ]
+        }
+    ]
+}
