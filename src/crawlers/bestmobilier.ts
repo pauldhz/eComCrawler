@@ -16,7 +16,9 @@ router.addHandler('PRODUCT', async ({ page, request, log }) => {
     await page.waitForLoadState('networkidle');
 
     const title = await page.title();
-    const price = await page.$eval('.price', (el: Element) => el.textContent?.trim()).catch(() => null);
+    const price = await page
+        .$eval('.price', (el: Element) => el.textContent?.trim())
+        .catch(() => null);
 
     await Dataset.pushData({ url: request.url, title, price });
 });

@@ -1,20 +1,39 @@
-import { CheerioCrawler, createCheerioRouter, PlaywrightCrawler, createPlaywrightRouter, Dataset, CheerioCrawlingContext, CrawlingContext, ProxyConfiguration } from 'crawlee';
+import {
+    CheerioCrawler,
+    createCheerioRouter,
+    PlaywrightCrawler,
+    createPlaywrightRouter,
+    Dataset,
+    CheerioCrawlingContext,
+    CrawlingContext,
+    ProxyConfiguration,
+} from 'crawlee';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
 import { config as loadEnv } from 'dotenv';
 import { Blueprint, FieldDef, LevelDef } from './blueprint-model.js';
-import { extractAttr, extractAttrList, extractKeyValueTable, extractText, extractTextFilter, extractTextGroupList } from './blueprint-extractors.js';
+import {
+    extractAttr,
+    extractAttrList,
+    extractKeyValueTable,
+    extractText,
+    extractTextFilter,
+    extractTextGroupList,
+} from './blueprint-extractors.js';
 import { CheerioAdapter, PlaywrightAdapter, ExtractionAdapter } from './blueprint-adapter.js';
 import { posthook, prehook } from '../configuration/hooks.js';
 
 loadEnv();
 
 function resolveEnvVars(urls: string[]): string[] {
-    return urls.map(url => {
+    return urls.map((url) => {
         if (!url.startsWith('$')) return url;
         const varName = url.slice(1);
         const value = process.env[varName];
-        if (!value) throw new Error(`Variable d'environnement manquante : ${varName} (référencée dans le blueprint)`);
+        if (!value)
+            throw new Error(
+                `Variable d'environnement manquante : ${varName} (référencée dans le blueprint)`
+            );
         return value;
     });
 }
@@ -24,12 +43,18 @@ function resolveEnvVars(urls: string[]): string[] {
 /** Dispatche vers la méthode d'extraction adaptée selon `field.type`. */
 async function extractField(adapter: ExtractionAdapter, field: FieldDef): Promise<unknown> {
     switch (field.type) {
-        case 'text':            return extractText(adapter, field);
-        case 'text-filter':     return extractTextFilter(adapter, field);
-        case 'attr':            return extractAttr(adapter, field);
-        case 'attr-list':       return extractAttrList(adapter, field);
-        case 'key-value-table': return extractKeyValueTable(adapter, field);
-        case 'text-group-list': return extractTextGroupList(adapter, field);
+        case 'text':
+            return extractText(adapter, field);
+        case 'text-filter':
+            return extractTextFilter(adapter, field);
+        case 'attr':
+            return extractAttr(adapter, field);
+        case 'attr-list':
+            return extractAttrList(adapter, field);
+        case 'key-value-table':
+            return extractKeyValueTable(adapter, field);
+        case 'text-group-list':
+            return extractTextGroupList(adapter, field);
     }
 }
 
@@ -37,7 +62,12 @@ async function extractField(adapter: ExtractionAdapter, field: FieldDef): Promis
 async function processLevel(
     adapter: ExtractionAdapter,
     level: LevelDef,
-    context: { enqueueLinks: CheerioCrawlingContext['enqueueLinks']; addRequests: CheerioCrawlingContext['addRequests']; request: CheerioCrawlingContext['request']; log: CheerioCrawlingContext['log'] }
+    context: {
+        enqueueLinks: CheerioCrawlingContext['enqueueLinks'];
+        addRequests: CheerioCrawlingContext['addRequests'];
+        request: CheerioCrawlingContext['request'];
+        log: CheerioCrawlingContext['log'];
+    }
 ): Promise<void> {
     const { enqueueLinks, addRequests, request, log } = context;
     log.info(`[${level.label}] ${request.url}`);
@@ -59,7 +89,12 @@ async function processLevel(
         const record: Record<string, unknown> = { url: request.url };
         for (const field of level.fields) {
             const value = await extractField(adapter, field);
-            if (field.flatten && typeof value === 'object' && value !== null && !Array.isArray(value)) {
+            if (
+                field.flatten &&
+                typeof value === 'object' &&
+                value !== null &&
+                !Array.isArray(value)
+            ) {
                 Object.assign(record, value);
             } else {
                 record[field.key] = value;
@@ -71,13 +106,13 @@ async function processLevel(
 
 // ─── Runner ───────────────────────────────────────────────────────────────────
 
-export const createCrawlerFromBlueprint = (blueprintPath: string): {
+export const createCrawlerFromBlueprint = (
+    blueprintPath: string
+): {
     crawler: CheerioCrawler | PlaywrightCrawler;
     startUrls: { url: string; label: string }[];
 } => {
-    const blueprint: Blueprint = JSON.parse(
-        readFileSync(resolve(blueprintPath), 'utf-8')
-    );
+    const blueprint: Blueprint = JSON.parse(readFileSync(resolve(blueprintPath), 'utf-8'));
 
     let startUrls: { url: string; label: string }[] = [];
     for (const level of blueprint.levels) {
@@ -104,9 +139,11 @@ export const createCrawlerFromBlueprint = (blueprintPath: string): {
                 headless: false,
                 proxyConfiguration,
                 ...(debug && {
-                    preNavigationHooks: [async ({ request, log }) => {
-                        log.debug(`→ [${request.label ?? '?'}] ${request.url}`);
-                    }],
+                    preNavigationHooks: [
+                        async ({ request, log }) => {
+                            log.debug(`→ [${request.label ?? '?'}] ${request.url}`);
+                        },
+                    ],
                 }),
             }),
             startUrls,
@@ -126,10 +163,15 @@ export const createCrawlerFromBlueprint = (blueprintPath: string): {
             requestHandler: router,
             proxyConfiguration,
             ...(debug && {
-                preNavigationHooks: [async ({ request, log }) => prehook({ request, log } as CheerioCrawlingContext)],
-                postNavigationHooks: [async ({ request, response, log }) => posthook({request, response, log } as CheerioCrawlingContext)],
+                preNavigationHooks: [
+                    async ({ request, log }) => prehook({ request, log } as CheerioCrawlingContext),
+                ],
+                postNavigationHooks: [
+                    async ({ request, response, log }) =>
+                        posthook({ request, response, log } as CheerioCrawlingContext),
+                ],
             }),
         }),
         startUrls,
     };
-}
+};

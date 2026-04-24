@@ -1,4 +1,4 @@
-import { CrawlingContext } from "crawlee";
+import { CrawlingContext } from 'crawlee';
 
 export const prehook = (context: CrawlingContext) => {
     const { request, log } = context;
@@ -11,7 +11,13 @@ export const prehook = (context: CrawlingContext) => {
 
 export const posthook = (context: CrawlingContext) => {
     const { request, response, log } = context;
-    const res = response as { statusCode?: number; headers?: Record<string, string>; request?: { options?: { headers?: Record<string, string> } } } | undefined;
+    const res = response as
+        | {
+              statusCode?: number;
+              headers?: Record<string, string>;
+              request?: { options?: { headers?: Record<string, string> } };
+          }
+        | undefined;
     const status = res?.statusCode ?? '?';
     const ct = (res?.headers?.['content-type'] ?? '').split(';')[0];
     const size = res?.headers?.['content-length'] ?? '?';

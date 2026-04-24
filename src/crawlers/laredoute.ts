@@ -1,4 +1,11 @@
-import { PlaywrightCrawler, createPlaywrightRouter, Dataset, BrowserName, OperatingSystemsName, DeviceCategory } from "crawlee";
+import {
+    PlaywrightCrawler,
+    createPlaywrightRouter,
+    Dataset,
+    BrowserName,
+    OperatingSystemsName,
+    DeviceCategory,
+} from 'crawlee';
 import { firefox } from 'playwright';
 import { launchOptions } from 'camoufox-js';
 
@@ -32,7 +39,9 @@ router.addHandler('PRODUCT', async ({ page, request, log }) => {
     await page.waitForLoadState('networkidle');
 
     const title = await page.title();
-    const price = await page.$eval('.price', (el: Element) => el.textContent?.trim()).catch(() => null);
+    const price = await page
+        .$eval('.price', (el: Element) => el.textContent?.trim())
+        .catch(() => null);
 
     await Dataset.pushData({ url: request.url, title, price });
 });
@@ -55,6 +64,4 @@ export const laredouteCrawler = new PlaywrightCrawler({
 });
 
 // Départ : la homepage avec le label HOME
-export const laredouteStartUrl = [
-    { url: 'https://www.laredoute.fr/', label: 'HOME' },
-];
+export const laredouteStartUrl = [{ url: 'https://www.laredoute.fr/', label: 'HOME' }];

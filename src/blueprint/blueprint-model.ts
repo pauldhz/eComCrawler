@@ -7,7 +7,13 @@
  * - `key-value-table`  → lit un tableau HTML à deux colonnes et construit un objet clé/valeur
  * - `text-group-list`   → collecte plusieurs éléments, découpe chacun par `groupBySeparator` et retourne un tableau structuré
  */
-export type FieldType = 'text' | 'text-filter' | 'attr' | 'attr-list' | 'key-value-table' | 'text-group-list';
+export type FieldType =
+    | 'text'
+    | 'text-filter'
+    | 'attr'
+    | 'attr-list'
+    | 'key-value-table'
+    | 'text-group-list';
 
 /**
  * Définition d'un champ à extraire sur une page produit.

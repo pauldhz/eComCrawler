@@ -22,7 +22,11 @@ export interface ExtractionAdapter {
     getTextList(selector: string): Promise<string[]>;
 
     /** Lit un tableau HTML à deux colonnes et retourne un objet clé/valeur. */
-    getKeyValueTable(selector: string, keyCell: string, valueCell: string): Promise<Record<string, string>>;
+    getKeyValueTable(
+        selector: string,
+        keyCell: string,
+        valueCell: string
+    ): Promise<Record<string, string>>;
 
     /** URL de la page suivante via un attribut sur un élément de pagination. */
     getNextPageUrl(selector: string, attr: string): Promise<string | null>;
@@ -65,7 +69,11 @@ export class CheerioAdapter implements ExtractionAdapter {
         return texts;
     }
 
-    async getKeyValueTable(selector: string, keyCell: string, valueCell: string): Promise<Record<string, string>> {
+    async getKeyValueTable(
+        selector: string,
+        keyCell: string,
+        valueCell: string
+    ): Promise<Record<string, string>> {
         const specs: Record<string, string> = {};
         this.$(selector).each((_, row) => {
             const key = this.$(row).find(keyCell).text().trim();
@@ -87,7 +95,7 @@ export class PlaywrightAdapter implements ExtractionAdapter {
 
     async getText(selector: string): Promise<string> {
         try {
-            return await this.page.locator(selector).first().textContent() ?? '';
+            return (await this.page.locator(selector).first().textContent()) ?? '';
         } catch {
             return '';
         }
@@ -96,7 +104,7 @@ export class PlaywrightAdapter implements ExtractionAdapter {
     async getTextFiltered(selector: string, filter: string): Promise<string> {
         const elements = await this.page.$$(selector);
         for (const el of elements) {
-            const text = await el.textContent() ?? '';
+            const text = (await el.textContent()) ?? '';
             if (text.includes(filter)) return text;
         }
         return '';
@@ -130,7 +138,11 @@ export class PlaywrightAdapter implements ExtractionAdapter {
         return texts;
     }
 
-    async getKeyValueTable(selector: string, keyCell: string, valueCell: string): Promise<Record<string, string>> {
+    async getKeyValueTable(
+        selector: string,
+        keyCell: string,
+        valueCell: string
+    ): Promise<Record<string, string>> {
         const rows = await this.page.$$(selector);
         const specs: Record<string, string> = {};
         for (const row of rows) {
