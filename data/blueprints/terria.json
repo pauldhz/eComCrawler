@@ -3,10 +3,7 @@
         "name": "Terria",
         "baseUrl": "https://www.terria.fr",
         "engine": "cheerio",
-        "debug": true,
-        "proxy": {
-            "urls": ["$PROXY"]
-        }
+        "debug": true
     },
     "levels": [
         {
