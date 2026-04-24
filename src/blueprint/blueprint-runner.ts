@@ -7,6 +7,7 @@ import {
     CheerioCrawlingContext,
     CrawlingContext,
     ProxyConfiguration,
+    PlaywrightCrawlingContext,
 } from 'crawlee';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
@@ -135,14 +136,26 @@ export const createCrawlerFromBlueprint = (
         }
         return {
             crawler: new PlaywrightCrawler({
+                browserPoolOptions: {
+                    fingerprintOptions: {
+                        fingerprintGeneratorOptions: {
+                            browsers: [{ name: 'chrome', minVersion: 120 }],
+                            devices: ['desktop'],
+                            operatingSystems: ['windows'],
+                        },
+                    },
+                },
                 requestHandler: router,
-                headless: false,
+                headless: true,
                 proxyConfiguration,
                 ...(debug && {
                     preNavigationHooks: [
-                        async ({ request, log }) => {
-                            log.debug(`→ [${request.label ?? '?'}] ${request.url}`);
-                        },
+                        async ({ request, log }) =>
+                            prehook({ request, log } as PlaywrightCrawlingContext),
+                    ],
+                    postNavigationHooks: [
+                        ({ request, response, log }) =>
+                            posthook({ request, response, log } as PlaywrightCrawlingContext),
                     ],
                 }),
             }),
@@ -167,7 +180,7 @@ export const createCrawlerFromBlueprint = (
                     async ({ request, log }) => prehook({ request, log } as CheerioCrawlingContext),
                 ],
                 postNavigationHooks: [
-                    async ({ request, response, log }) =>
+                    ({ request, response, log }) =>
                         posthook({ request, response, log } as CheerioCrawlingContext),
                 ],
             }),
