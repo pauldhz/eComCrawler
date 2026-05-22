@@ -11,13 +11,19 @@ import {
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
 import { config as loadEnv } from 'dotenv';
-
-import { BrowserName } from '@crawlee/browser-pool';
-import { CheerioAdapter, ExtractionAdapter, PlaywrightAdapter } from '../crawling/blueprint/blueprint-adapter.js';
-import { Blueprint, FieldDef, LevelDef } from '../crawling/blueprint/blueprint-model.js';
+import { Blueprint, FieldDef, LevelDef } from './blueprint-model.js';
+import {
+    extractAttr,
+    extractAttrList,
+    extractKeyValueTable,
+    extractText,
+    extractTextFilter,
+    extractTextGroupList,
+} from './blueprint-extractors.js';
+import { CheerioAdapter, PlaywrightAdapter, ExtractionAdapter } from './blueprint-adapter.js';
+import { posthook, prehook } from '../../configuration/hooks.js';
 import { Camoufox } from 'camoufox-js';
-import { posthook, prehook } from '../configuration/hooks.js';
-import { extractText, extractTextFilter, extractAttr, extractAttrList, extractKeyValueTable, extractTextGroupList } from '../crawling/blueprint/blueprint-extractors.js';
+import { BrowserName } from '@crawlee/browser-pool';
 
 loadEnv();
 
