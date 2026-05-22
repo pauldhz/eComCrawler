@@ -3,11 +3,12 @@
     "module": "nodenext",
     "moduleResolution": "NodeNext",
     "target": "es2022",
-    "outDir": "./dist",
+    "outDir": "out",
     "rootDir": "./src",
     "esModuleInterop": true,
     "strict": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "sourceMap": true
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]

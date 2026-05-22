@@ -177,7 +177,7 @@ interface Blueprint {
          * `'cheerio'` : parsing HTML statique, rapide, sans JS.
          * `'playwright'` : browser réel (Chromium), exécute le JS, contourne les rendus dynamiques.
          */
-        engine: 'cheerio' | 'playwright';
+        engine: 'cheerio' | 'playwright' | 'camoufox';
 
         /**
          * Active le mode debug : log détaillé de chaque requête HTTP (URL, label, statut, taille).
@@ -192,6 +192,12 @@ interface Blueprint {
         proxy?: {
             urls: string[];
         };
+
+        /**
+         * Chemin vers un fichier JSON de headers HTTP à injecter sur chaque requête.
+         * Ex: `"data/user-agents/safari-ua.json"`.
+         */
+        userAgent?: string;
     };
 
     /**

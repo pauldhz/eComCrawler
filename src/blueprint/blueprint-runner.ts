@@ -5,7 +5,6 @@ import {
     createPlaywrightRouter,
     Dataset,
     CheerioCrawlingContext,
-    CrawlingContext,
     ProxyConfiguration,
     PlaywrightCrawlingContext,
 } from 'crawlee';
@@ -23,6 +22,8 @@ import {
 } from './blueprint-extractors.js';
 import { CheerioAdapter, PlaywrightAdapter, ExtractionAdapter } from './blueprint-adapter.js';
 import { posthook, prehook } from '../configuration/hooks.js';
+import { Camoufox } from 'camoufox-js';
+import { BrowserName } from '@crawlee/browser-pool';
 
 loadEnv();
 
@@ -122,11 +123,16 @@ export const createCrawlerFromBlueprint = (
 
     const debug = blueprint.site.debug ?? false;
 
+    const userAgentHeaders: Record<string, string> = blueprint.site.userAgent
+        ? JSON.parse(readFileSync(resolve(blueprint.site.userAgent), 'utf-8'))
+        : {};
+
     const proxyConfiguration = blueprint.site.proxy
         ? new ProxyConfiguration({ proxyUrls: resolveEnvVars(blueprint.site.proxy.urls) })
         : undefined;
 
-    if (blueprint.site.engine === 'playwright') {
+    if (blueprint.site.engine === 'camoufox' || blueprint.site.engine === 'playwright') {
+        const isCamoufox = blueprint.site.engine === 'camoufox';
         const router = createPlaywrightRouter();
         for (const level of blueprint.levels) {
             router.addHandler(level.label, async (ctx) => {
@@ -134,30 +140,81 @@ export const createCrawlerFromBlueprint = (
                 await processLevel(adapter, level, ctx);
             });
         }
+        const camoufoxLauncher = {
+            name: () => 'firefox',
+            launch: async () => Camoufox({ headless: false, humanize: true }),
+        };
+
+        // Cookies partagés entre les contextes incognito successifs
+        const sharedCookies: { name: string; value: string; domain?: string; path?: string; expires?: number; httpOnly?: boolean; secure?: boolean; sameSite?: 'Strict' | 'Lax' | 'None' }[] = [];
+
         return {
             crawler: new PlaywrightCrawler({
-                browserPoolOptions: {
-                    fingerprintOptions: {
-                        fingerprintGeneratorOptions: {
-                            browsers: [{ name: 'chrome', minVersion: 120 }],
-                            devices: ['desktop'],
-                            operatingSystems: ['windows'],
+                ...(isCamoufox && {
+                    launchContext: {
+                        launcher: camoufoxLauncher as any,
+                        useIncognitoPages: true, // Camoufox ne supporte pas launchPersistentContext
+                    },
+                }),
+                ...(!isCamoufox && {
+                    browserPoolOptions: {
+                        useFingerprints: true,
+                        fingerprintOptions: {
+                            fingerprintGeneratorOptions: {
+                                browsers: [{ name: BrowserName.chrome, minVersion: 130 }],
+                                devices: ['desktop'] as any,
+                                operatingSystems: ['windows', 'macos'] as any,
+                                locales: ['fr-FR', 'en-US'],
+                            },
                         },
                     },
-                },
-                requestHandler: router,
-                headless: true,
-                proxyConfiguration,
-                ...(debug && {
-                    preNavigationHooks: [
-                        async ({ request, log }) =>
-                            prehook({ request, log } as PlaywrightCrawlingContext),
-                    ],
-                    postNavigationHooks: [
-                        ({ request, response, log }) =>
-                            posthook({ request, response, log } as PlaywrightCrawlingContext),
-                    ],
                 }),
+                maxConcurrency: 1,
+                minConcurrency: 1,
+                maxRequestsPerMinute: 20,
+                requestHandler: router,
+                proxyConfiguration,
+                preNavigationHooks: [
+                    async ({ page, request, log }) => {
+                        // Injecter les cookies collectés sur les pages précédentes
+                        if (sharedCookies.length > 0) {
+                            await page.context().addCookies(sharedCookies);
+                        }
+                        // Corriger sec-fetch-site et referer pour les navigations internes
+                        if (request.label !== 'HOME') {
+                            await page.route('**', async (route) => {
+                                const req = route.request();
+                                if (req.isNavigationRequest()) {
+                                    const headers = await req.allHeaders();
+                                    await route.continue({
+                                        headers: {
+                                            ...headers,
+                                            'sec-fetch-site': 'same-origin',
+                                            referer: blueprint.site.baseUrl,
+                                        },
+                                    });
+                                } else {
+                                    await route.continue();
+                                }
+                            });
+                        }
+                        if (debug) prehook({ request, log } as PlaywrightCrawlingContext);
+                    },
+                ],
+                postNavigationHooks: [
+                    async ({ page, request, response, log }) => {
+                        // Collecter les cookies (dont datadome) pour les prochains contextes
+                        const cookies = await page.context().cookies();
+                        for (const cookie of cookies) {
+                            const idx = sharedCookies.findIndex(
+                                (c: { name: string; domain?: string }) => c.name === cookie.name && c.domain === cookie.domain,
+                            );
+                            if (idx >= 0) sharedCookies[idx] = cookie;
+                            else sharedCookies.push(cookie);
+                        }
+                        if (debug) posthook({ request, response, log } as PlaywrightCrawlingContext);
+                    },
+                ],
             }),
             startUrls,
         };
@@ -173,12 +230,24 @@ export const createCrawlerFromBlueprint = (
     }
     return {
         crawler: new CheerioCrawler({
+            errorHandler: async ({ request, error, log }) => {
+                log.error(`Erreur navigation [${request.label}]}`);
+            },
+            maxConcurrency: 1,
+            minConcurrency: 1,
+            maxRequestsPerMinute: 20,
             requestHandler: router,
             proxyConfiguration,
+
+            preNavigationHooks: [
+                async ({ request, log }, gotOptions) => {
+                    // if (Object.keys(userAgentHeaders).length > 0) {
+                    log.warning(JSON.stringify(gotOptions.headers));
+                    // }
+                    if (debug) prehook({ request, log } as CheerioCrawlingContext);
+                },
+            ],
             ...(debug && {
-                preNavigationHooks: [
-                    async ({ request, log }) => prehook({ request, log } as CheerioCrawlingContext),
-                ],
                 postNavigationHooks: [
                     ({ request, response, log }) =>
                         posthook({ request, response, log } as CheerioCrawlingContext),

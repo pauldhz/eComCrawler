@@ -1,0 +1,24 @@
+{
+    "site": {
+        "name": "httpbin",
+        "baseUrl": "https://httpbin.org",
+        "engine": "cheerio",
+        "debug": true
+    },
+    "levels": [
+        {
+            "label": "CACHE",
+            "startUrls": [
+                { "url": "https://httpbin.org/headers", "label": "CACHE" }
+            ],
+            "fields": [
+                {
+                    "key": "body",
+                    "selector": "body",
+                    "type": "text",
+                    "transform": "trim"
+                }
+            ]
+        }
+    ]
+}

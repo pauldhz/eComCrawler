@@ -6,8 +6,9 @@
   "type": "module",
   "scripts": {
     "start": "tsx src/main.ts",
+    "startn": "node out/main.js",
     "build": "tsc",
-    "dev": "tsx watch src/main.ts",
+    "dev": "tsc --watch",
     "format": "prettier --write \"src/**/*.ts\""
   },
   "repository": {
