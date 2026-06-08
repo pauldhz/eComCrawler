@@ -139,7 +139,6 @@ export const createCrawlerFromBlueprint = (
             launch: async () => Camoufox({ headless: false, humanize: true }),
         };
 
-        // Cookies partagés entre les contextes incognito successifs
         const sharedCookies: { name: string; value: string; domain?: string; path?: string; expires?: number; httpOnly?: boolean; secure?: boolean; sameSite?: 'Strict' | 'Lax' | 'None' }[] = [];
 
         return {

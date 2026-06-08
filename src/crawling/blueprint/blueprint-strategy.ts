@@ -5,11 +5,10 @@ import { createCrawlerFromBlueprint } from './../../crawling/blueprint/blueprint
 
 export class BlueprintStrategy implements CrawlingStrategy {
 
-    createCrawler(data: any): {
+    async createCrawler(data: any): Promise<{
         crawler: CheerioCrawler | PlaywrightCrawler,
         startUrls: { url: string; label: string }[];
-    } 
-    { 
+    }> {
         return createCrawlerFromBlueprint(data);
     }
     

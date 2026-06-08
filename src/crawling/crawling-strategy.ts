@@ -18,8 +18,8 @@ export class CrawlingStrategyFactory {
 }
 
 export interface CrawlingStrategy {
-    createCrawler(data: any): {
+    createCrawler(data: any): Promise<{
         crawler: CheerioCrawler | PlaywrightCrawler,
         startUrls: { url: string; label: string }[];
-    };
+    }>;
 }
