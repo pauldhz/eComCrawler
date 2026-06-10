@@ -1,6 +1,6 @@
 import { CheerioCrawler, PlaywrightCrawler } from "crawlee";
 import { BlueprintStrategy } from "./blueprint/blueprint-strategy.js";
-import { ManualStrategy } from "./manual/manual-strategy.js";
+import { ManualStrategy } from "./manual/lrdoute/manual-strategy.js";
 
 
 

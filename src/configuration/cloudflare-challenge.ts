@@ -25,7 +25,7 @@ export async function clickPositionCallback(
 
     // Mirror Crawlee's current behavior: fixed offset inside the box + small jitter.
     const x = bb.x + 15 + randomOffset(10);
-    const y = bb.y + 25 + randomOffset(10);
+    const y = bb.y + randomOffset(10);
 
     return { x, y };
 }

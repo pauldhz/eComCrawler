@@ -6,4 +6,4 @@ import { CrawlingStrategyFactory, CrawlingStrategyType } from './crawling/crawli
 const { crawler, startUrls } = await CrawlingStrategyFactory.of(CrawlingStrategyType.MANUAL_STRATEGY).createCrawler('data/blueprints/mdm.json');
 await crawler.run(startUrls);
 
-const dataset = await Dataset.open();
+await Dataset.exportToJSON('OUTPUT');
