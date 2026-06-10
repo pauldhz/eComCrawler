@@ -1,0 +1,1 @@
+export const MATTER_LABELS : string[] = ['Matière'];

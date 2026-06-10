@@ -1,5 +1,6 @@
 // centimeters
-export type Dimensions = Record<string,Record<string,string>>;
+export type Dimensions = Record<string,Record<string,string>> | Record<string,string>;
+
 
 export interface Property {
     name: string;

@@ -1,0 +1,1 @@
+export const MEASUREMENTS : string[] = ['Largeur', 'Hauteur', 'Profondeur', ' cm'];

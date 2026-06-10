@@ -29,7 +29,7 @@ export class DescriptionParser {
         return source.slice(start, end);
     }
 
-    public static parseDimensions(lines: string[]): Record<string, Record<string, string>> {
+    public static parseMeasurementsWithDynamicKey(lines: string[]): Record<string, Record<string, string>> {
         const result: Record<string, Record<string, string>> = {};
         let currentGroup = '';
 
@@ -47,4 +47,21 @@ export class DescriptionParser {
 
         return result;
     }
+
+    public static parseMeasurements(lines: string[]): Record<string, string> {
+    const result: Record<string, string> = {};
+
+    for (const line of lines) {
+        const colonIdx = line.indexOf(':');
+
+        if (colonIdx === -1) continue;
+
+        const key = line.slice(0, colonIdx).trim();
+        const value = line.slice(colonIdx + 1).trim();
+
+        result[key] = value;
+    }
+
+    return result;
+}
 }

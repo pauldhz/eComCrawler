@@ -1,6 +1,6 @@
 import { CheerioCrawler, PlaywrightCrawler } from "crawlee";
 import { BlueprintStrategy } from "./blueprint/blueprint-strategy.js";
-import { ManualStrategy } from "./manual/lrdoute/manual-strategy.js";
+import { LaredouteManualStrategy } from "./manual/lrdoute/laredoute-manual-strategy.js";
 
 
 
@@ -12,7 +12,7 @@ export class CrawlingStrategyFactory {
     static of(strategy: CrawlingStrategyType): CrawlingStrategy {
         switch(strategy) {
             case CrawlingStrategyType.BLUEPRINT_STRATEGY: return new BlueprintStrategy();
-            case CrawlingStrategyType.MANUAL_STRATEGY: return new ManualStrategy();
+            case CrawlingStrategyType.MANUAL_STRATEGY: return new LaredouteManualStrategy();
         }
     }
 }

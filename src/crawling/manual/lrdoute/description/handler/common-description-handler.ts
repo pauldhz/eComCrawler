@@ -3,6 +3,7 @@ import { Handler } from "../../../../../shared/pattern/chainofresponsibility/han
 import { Page } from "playwright";
 import { DescriptionParser } from "../description-parser.js";
 import { Dimensions } from "../../../../../domain/scrapping.js";
+import { MEASUREMENTS } from "../../../../../domain/measurement.js";
 
 export class CommonDescriptionHandler extends Handler<Page, {page: Page, log: Log, callback: (dimensions: Dimensions, matters: string) => void}> {
     
@@ -20,13 +21,11 @@ export class CommonDescriptionHandler extends Handler<Page, {page: Page, log: Lo
                 const resultForMatter = description
                     ?.split('<br>')
                     .map(line => line.replace(/(&nbsp;|•)/g, '').trim());
-        
-                const dimensionsNamings = ['Largeur', 'Hauteur', 'Profondeur', ' cm'];
                 
-                const filteredResultForDimensions = DescriptionParser.getNeighbors(resultForDimensions, dimensionsNamings, 1, 4);
+                const filteredResultForDimensions = DescriptionParser.getNeighbors(resultForDimensions, MEASUREMENTS, 1, 4);
                 const filteredResultForMatter = DescriptionParser.getNeighbors(resultForMatter, ['Description'], 0, -1, line => line.includes('<b>'));
         
-                const dimensions = DescriptionParser.parseDimensions(filteredResultForDimensions);
+                const dimensions = DescriptionParser.parseMeasurementsWithDynamicKey(filteredResultForDimensions);
                 const matters = filteredResultForMatter.slice(1).join(' - ');
                 callback(dimensions, matters);
     }
